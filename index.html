@@ -1,0 +1,1143 @@
+
+html_content = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Automation Tools Landscape</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        turquoise: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            300: '#5eead4',
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                            950: '#042f2e',
+                        },
+                        silver: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #020617;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .slide.prev {
+            transform: translateX(-100%);
+        }
+        
+        /* Animated background mesh */
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(20, 184, 166, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(148, 163, 184, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(13, 148, 136, 0.05) 0%, transparent 70%);
+            animation: meshMove 20s ease-in-out infinite;
+        }
+        
+        @keyframes meshMove {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-2%, 2%) scale(1.02); }
+            66% { transform: translate(2%, -2%) scale(0.98); }
+        }
+        
+        /* Grid lines */
+        .grid-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: 
+                linear-gradient(rgba(20, 184, 166, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(20, 184, 166, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridPulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        /* Navigation */
+        .nav-dots {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(148, 163, 184, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .nav-dot:hover {
+            background: rgba(20, 184, 166, 0.6);
+            transform: scale(1.2);
+        }
+        
+        .nav-dot.active {
+            background: #14b8a6;
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(20, 184, 166, 0.5);
+        }
+        
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #14b8a6, #5eead4, #94a3b8);
+            z-index: 100;
+            transition: width 0.5s ease;
+        }
+        
+        /* Card styling */
+        .tool-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(20, 184, 166, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .tool-card:hover::before {
+            left: 100%;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(20, 184, 166, 0.5);
+            box-shadow: 0 20px 40px rgba(20, 184, 166, 0.15);
+        }
+        
+        /* Code block styling */
+        .code-block {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #5eead4;
+            overflow-x: auto;
+        }
+        
+        /* Animated text */
+        .glitch-text {
+            position: relative;
+            animation: glitch 3s infinite;
+        }
+        
+        @keyframes glitch {
+            0%, 90%, 100% { transform: translate(0); }
+            92% { transform: translate(-2px, 1px); }
+            94% { transform: translate(2px, -1px); }
+            96% { transform: translate(-1px, 2px); }
+            98% { transform: translate(1px, -2px); }
+        }
+        
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(20, 184, 166, 0.6);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+        
+        /* Comparison table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(20, 184, 166, 0.2);
+        }
+        
+        .comparison-table th {
+            background: rgba(20, 184, 166, 0.1);
+            color: #5eead4;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+        }
+        
+        .comparison-table tr:hover td {
+            background: rgba(20, 184, 166, 0.05);
+        }
+        
+        /* Category badges */
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .badge-config { background: rgba(20, 184, 166, 0.2); color: #5eead4; }
+        .badge-monitor { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+        .badge-test { background: rgba(94, 234, 212, 0.2); color: #2dd4bf; }
+        .badge-orchestrate { background: rgba(13, 148, 136, 0.3); color: #14b8a6; }
+        
+        /* Use case icons */
+        .use-case-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        /* Keyboard hints */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2rem;
+            z-index: 100;
+            font-size: 0.75rem;
+            color: rgba(148, 163, 184, 0.6);
+        }
+        
+        .key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.25rem 0.5rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            margin-right: 0.5rem;
+        }
+        
+        /* Architecture diagram */
+        .arch-node {
+            background: rgba(30, 41, 59, 0.6);
+            border: 2px solid rgba(20, 184, 166, 0.4);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .arch-node:hover {
+            border-color: #14b8a6;
+            box-shadow: 0 0 30px rgba(20, 184, 166, 0.3);
+        }
+        
+        .arch-connector {
+            position: absolute;
+            background: linear-gradient(90deg, #14b8a6, #94a3b8);
+            height: 2px;
+        }
+        
+        /* Pulse animation for live indicators */
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background effects -->
+    <div class="bg-mesh"></div>
+    <div class="grid-lines"></div>
+    
+    <!-- Floating particles -->
+    <div id="particles"></div>
+    
+    <!-- Progress bar -->
+    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+    
+    <!-- Navigation dots -->
+    <div class="nav-dots" id="navDots"></div>
+    
+    <!-- Keyboard hints -->
+    <div class="keyboard-hint">
+        <span><span class="key">←</span> Previous</span>
+        <span><span class="key">→</span> Next</span>
+        <span><span class="key">ESC</span> Overview</span>
+    </div>
+
+    <!-- Slide 1: Title -->
+    <div class="slide active" data-slide="0">
+        <div class="text-center max-w-4xl">
+            <div class="mb-6">
+                <span class="category-badge badge-config">Network Engineer Perspective</span>
+            </div>
+            <h1 class="text-6xl md:text-8xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-turquoise-300 via-turquoise-400 to-silver-300 glitch-text">
+                AUTOMATION<br/>TOOLBOX
+            </h1>
+            <p class="text-xl md:text-2xl text-silver-400 mb-8 font-light">
+                Decoding the Network Automation Landscape
+            </p>
+            <div class="flex justify-center gap-4 text-sm text-silver-500">
+                <span class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-turquoise-500 pulse"></span>
+                    Configuration Management
+                </span>
+                <span class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-silver-400 pulse"></span>
+                    Monitoring & Observability
+                </span>
+                <span class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-turquoise-300 pulse"></span>
+                    Testing & Validation
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2: The Automation Spectrum -->
+    <div class="slide" data-slide="1">
+        <div class="max-w-6xl w-full">
+            <h2 class="text-4xl font-bold mb-2 text-turquoise-300">The Automation Spectrum</h2>
+            <p class="text-silver-400 mb-12">From configuration to observation — understanding tool categories</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="tool-card text-center">
+                    <div class="use-case-icon bg-turquoise-500/20 text-turquoise-300 mx-auto">⚙️</div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Configuration</h3>
+                    <p class="text-sm text-silver-400">Deploy, manage, and maintain network device configurations at scale</p>
+                    <div class="mt-4 text-xs text-turquoise-400 font-mono">Ansible · Terraform · NAPALM</div>
+                </div>
+                
+                <div class="tool-card text-center">
+                    <div class="use-case-icon bg-silver-500/20 text-silver-300 mx-auto">📊</div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Monitoring</h3>
+                    <p class="text-sm text-silver-400">Collect metrics, visualize performance, and alert on anomalies</p>
+                    <div class="mt-4 text-xs text-silver-400 font-mono">Grafana · Prometheus · Zabbix</div>
+                </div>
+                
+                <div class="tool-card text-center">
+                    <div class="use-case-icon bg-turquoise-400/20 text-turquoise-200 mx-auto">🧪</div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Testing</h3>
+                    <p class="text-sm text-silver-400">Validate configurations, audit compliance, and simulate changes</p>
+                    <div class="mt-4 text-xs text-turquoise-300 font-mono">Batfish · pyATS · Netmiko</div>
+                </div>
+                
+                <div class="tool-card text-center">
+                    <div class="use-case-icon bg-turquoise-600/20 text-turquoise-400 mx-auto">🎛️</div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Orchestration</h3>
+                    <p class="text-sm text-silver-400">Coordinate multi-step workflows across diverse toolchains</p>
+                    <div class="mt-4 text-xs text-turquoise-500 font-mono">StackStorm · AWX · NSO</div>
+                </div>
+            </div>
+            
+            <div class="mt-12 p-6 bg-silver-900/30 rounded-xl border border-silver-700/30">
+                <p class="text-center text-silver-300 italic">
+                    "No single tool does everything. The magic happens when you orchestrate them into a cohesive pipeline."
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: Ansible Deep Dive -->
+    <div class="slide" data-slide="2">
+        <div class="max-w-6xl w-full">
+            <div class="flex items-center gap-4 mb-8">
+                <span class="category-badge badge-config">Configuration Management</span>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-5xl font-bold text-turquoise-300 mb-4">Ansible</h2>
+                    <p class="text-xl text-silver-300 mb-6">Agentless automation engine that speaks SSH. The network engineer's Swiss Army knife.</p>
+                    
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start gap-3">
+                            <span class="text-turquoise-400 mt-1">▸</span>
+                            <div>
+                                <h4 class="text-white font-semibold">Agentless Architecture</h4>
+                                <p class="text-sm text-silver-400">No software to install on network devices. Uses existing SSH/NETCONF.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-turquoise-400 mt-1">▸</span>
+                            <div>
+                                <h4 class="text-white font-semibold">Idempotent Playbooks</h4>
+                                <p class="text-sm text-silver-400">Run once or run hundred times — same result. Safe for production.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-turquoise-400 mt-1">▸</span>
+                            <div>
+                                <h4 class="text-white font-semibold">YAML-Based</h4>
+                                <p class="text-sm text-silver-400">Human-readable automation. Network teams adopt without coding bootcamp.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">
+                        <span class="text-silver-500"># Deploy VLANs across 500 switches</span><br/>
+                        <span class="text-purple-400">- name:</span> <span class="text-green-400">Provision VLANs</span><br/>
+                        &nbsp;&nbsp;<span class="text-purple-400">hosts:</span> <span class="text-green-400">switches</span><br/>
+                        &nbsp;&nbsp;<span class="text-purple-400">tasks:</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purple-400">- name:</span> <span class="text-green-400">Create VLAN</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-yellow-400">cisco.ios.ios_vlan:</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400">vlan_id:</span> <span class="text-orange-400">100</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400">name:</span> <span class="text-green-400">"MGMT_VLAN"</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400">state:</span> <span class="text-green-400">present</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="tool-card">
+                        <h4 class="text-turquoise-300 font-semibold mb-3">🔥 Primary Use Cases</h4>
+                        <ul class="space-y-2 text-sm text-silver-300">
+                            <li class="flex items-center gap-2"><span class="text-turquoise-500">●</span> Mass configuration deployment (VLANs, ACLs, SNMP)</li>
+                            <li class="flex items-center gap-2"><span class="text-turquoise-500">●</span> OS upgrades and patch management</li>
+                            <li class="flex items-center gap-2"><span class="text-turquoise-500">●</span> Backup and restore configurations</li>
+                            <li class="flex items-center gap-2"><span class="text-turquoise-500">●</span> Compliance auditing and remediation</li>
+                            <li class="flex items-center gap-2"><span class="text-turquoise-500">●</span> Zero-touch provisioning workflows</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tool-card">
+                        <h4 class="text-silver-300 font-semibold mb-3">⚡ When to Choose Ansible</h4>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="p-3 bg-turquoise-900/20 rounded border border-turquoise-700/30">
+                                <span class="text-turquoise-400 font-semibold">✓ Good For</span>
+                                <p class="text-silver-400 mt-1">Multi-vendor environments, quick automation wins, team collaboration</p>
+                            </div>
+                            <div class="p-3 bg-silver-800/30 rounded border border-silver-700/30">
+                                <span class="text-silver-400 font-semibold">✗ Not For</span>
+                                <p class="text-silver-500 mt-1">Real-time monitoring, complex state management, heavy API lifting</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 4: Grafana Deep Dive -->
+    <div class="slide" data-slide="3">
+        <div class="max-w-6xl w-full">
+            <div class="flex items-center gap-4 mb-8">
+                <span class="category-badge badge-monitor">Observability & Visualization</span>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-5xl font-bold text-silver-300 mb-4">Grafana</h2>
+                    <p class="text-xl text-silver-400 mb-6">The visualization layer that turns network metrics into actionable intelligence. Not a collector — a storyteller.</p>
+                    
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start gap-3">
+                            <span class="text-silver-400 mt-1">▸</span>
+                            <div>
+                                <h4 class="text-white font-semibold">Data Source Agnostic</h4>
+                                <p class="text-sm text-silver-400">Connects to Prometheus, InfluxDB, Elasticsearch, Zabbix, SNMP exporters...</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-silver-400 mt-1">▸</span>
+                            <div>
+                                <h4 class="text-white font-semibold">Network-Centric Dashboards</h4>
+                                <p class="text-sm text-silver-400">Pre-built templates for interface metrics, BGP states, latency heatmaps.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-silver-400 mt-1">▸</span>
+                            <div>
+                                <h4 class="text-white font-semibold">Alerting & Anomaly Detection</h4>
+                                <p class="text-sm text-silver-400">Trigger webhooks when bandwidth spikes, BGP flaps, or latency degrades.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">
+                        <span class="text-silver-500"># Grafana Alert Rule (YAML)</span><br/>
+                        <span class="text-purple-400">apiVersion:</span> <span class="text-green-400">1</span><br/>
+                        <span class="text-purple-400">groups:</span><br/>
+                        &nbsp;&nbsp;<span class="text-purple-400">- name:</span> <span class="text-green-400">network_alerts</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purple-400">rules:</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purple-400">- alert:</span> <span class="text-green-400">HighInterfaceUtilization</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purple-400">expr:</span> <span class="text-green-400">|</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-green-400">rate(interface_rx_bytes[5m]) > 0.8</span><br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purple-400">for:</span> <span class="text-green-400">5m</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="tool-card border-silver-500/30">
+                        <h4 class="text-silver-300 font-semibold mb-3">📊 Primary Use Cases</h4>
+                        <ul class="space-y-2 text-sm text-silver-300">
+                            <li class="flex items-center gap-2"><span class="text-silver-400">●</span> Network operations center (NOC) dashboards</li>
+                            <li class="flex items-center gap-2"><span class="text-silver-400">●</span> Capacity planning and trend analysis</li>
+                            <li class="flex items-center gap-2"><span class="text-silver-400">●</span> SLA monitoring and compliance reporting</li>
+                            <li class="flex items-center gap-2"><span class="text-silver-400">●</span> Correlating network events with application performance</li>
+                            <li class="flex items-center gap-2"><span class="text-silver-400">●</span> Executive summary views for infrastructure health</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tool-card border-silver-500/30">
+                        <h4 class="text-silver-300 font-semibold mb-3">⚡ When to Choose Grafana</h4>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="p-3 bg-silver-800/40 rounded border border-silver-600/30">
+                                <span class="text-silver-300 font-semibold">✓ Good For</span>
+                                <p class="text-silver-400 mt-1">Visualization, alerting, multi-source correlation, beautiful dashboards</p>
+                            </div>
+                            <div class="p-3 bg-turquoise-900/20 rounded border border-turquoise-700/30">
+                                <span class="text-turquoise-400 font-semibold">✗ Not For</span>
+                                <p class="text-silver-500 mt-1">Data collection (needs Prometheus/Zabbix), configuration management, automation</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-gradient-to-r from-silver-900/40 to-turquoise-900/20 rounded-xl border border-silver-700/30">
+                        <p class="text-sm text-silver-300">
+                            <span class="text-turquoise-400 font-semibold">💡 Pro Tip:</span> 
+                            Pair Grafana with <span class="text-turquoise-300">Prometheus + snmp_exporter</span> for vendor-agnostic network monitoring without expensive SNMP platforms.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 5: The Testing Tools -->
+    <div class="slide" data-slide="4">
+        <div class="max-w-6xl w-full">
+            <div class="flex items-center gap-4 mb-8">
+                <span class="category-badge badge-test">Validation & Testing</span>
+            </div>
+            
+            <h2 class="text-4xl font-bold text-turquoise-200 mb-2">Pre-Deployment Validation</h2>
+            <p class="text-silver-400 mb-8">Because "push and pray" is not a network strategy</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="tool-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-turquoise-500/20 flex items-center justify-center text-2xl">🐟</div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">Batfish</h3>
+                            <span class="text-xs text-turquoise-400">Configuration Analysis</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-silver-400 mb-4">Analyzes device configs offline to predict behavior. Find routing loops, ACL holes, and BGP misconfigs before deployment.</p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between text-silver-500">
+                            <span>Input:</span>
+                            <span class="text-turquoise-300">Config files, topology</span>
+                        </div>
+                        <div class="flex justify-between text-silver-500">
+                            <span>Output:</span>
+                            <span class="text-turquoise-300">Reachability reports</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-turquoise-700/30">
+                        <p class="text-xs text-turquoise-200">"Will this ACL block management traffic?" → Batfish knows.</p>
+                    </div>
+                </div>
+                
+                <div class="tool-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-turquoise-400/20 flex items-center justify-center text-2xl">🔬</div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">pyATS</h3>
+                            <span class="text-xs text-turquoise-300">Cisco Test Framework</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-silver-400 mb-4">Cisco's enterprise-grade testing robot. Learns your network state, compares before/after changes, validates operational status.</p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between text-silver-500">
+                            <span>Input:</span>
+                            <span class="text-turquoise-300">Live device connections</span>
+                        </div>
+                        <div class="flex justify-between text-silver-500">
+                            <span>Output:</span>
+                            <span class="text-turquoise-300">Diff reports, pass/fail</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-turquoise-700/30">
+                        <p class="text-xs text-turquoise-200">Golden standard for Cisco shops. Heavy but thorough.</p>
+                    </div>
+                </div>
+                
+                <div class="tool-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-silver-500/20 flex items-center justify-center text-2xl">🐍</div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">Netmiko</h3>
+                            <span class="text-xs text-silver-400">SSH Automation</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-silver-400 mb-4">Python library simplifying SSH to network devices. The foundation for custom scripts and quick operational tasks.</p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between text-silver-500">
+                            <span>Input:</span>
+                            <span class="text-silver-300">Python + device IPs</span>
+                        </div>
+                        <div class="flex justify-between text-silver-500">
+                            <span>Output:</span>
+                            <span class="text-silver-300">Command output</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-silver-700/30">
+                        <p class="text-xs text-silver-300">Building block, not framework. Perfect for ad-hoc automation.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 p-6 bg-turquoise-950/30 rounded-xl border border-turquoise-800/30">
+                <div class="flex items-center gap-4">
+                    <span class="text-3xl">⚠️</span>
+                    <div>
+                        <h4 class="text-turquoise-300 font-semibold">The Testing Gap</h4>
+                        <p class="text-sm text-silver-400">Most network outages come from config errors, not hardware failures. Testing tools are your safety net between "it compiled" and "it's in production."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Comparison Matrix -->
+    <div class="slide" data-slide="5">
+        <div class="max-w-6xl w-full">
+            <h2 class="text-4xl font-bold text-turquoise-300 mb-2">Tool Comparison Matrix</h2>
+            <p class="text-silver-400 mb-8">Quick reference for tool selection decisions</p>
+            
+            <div class="overflow-x-auto">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>Category</th>
+                            <th>Primary Function</th>
+                            <th>Learning Curve</th>
+                            <th>Best For</th>
+                            <th>Integration</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        <tr>
+                            <td class="text-turquoise-300 font-semibold">Ansible</td>
+                            <td><span class="category-badge badge-config">Config</span></td>
+                            <td class="text-silver-300">Deploy & manage configurations</td>
+                            <td class="text-green-400">Low</td>
+                            <td class="text-silver-400">Multi-vendor, quick wins</td>
+                            <td class="text-silver-500">Git, AWX, CI/CD</td>
+                        </tr>
+                        <tr>
+                            <td class="text-silver-300 font-semibold">Grafana</td>
+                            <td><span class="category-badge badge-monitor">Monitor</span></td>
+                            <td class="text-silver-300">Visualize metrics & alert</td>
+                            <td class="text-yellow-400">Medium</td>
+                            <td class="text-silver-400">Dashboards, NOC views</td>
+                            <td class="text-silver-500">Prometheus, InfluxDB</td>
+                        </tr>
+                        <tr>
+                            <td class="text-turquoise-200 font-semibold">Terraform</td>
+                            <td><span class="category-badge badge-config">Config</span></td>
+                            <td class="text-silver-300">Infrastructure as Code</td>
+                            <td class="text-yellow-400">Medium</td>
+                            <td class="text-silver-400">Cloud networks, SDN</td>
+                            <td class="text-silver-500">AWS, Azure, GCP</td>
+                        </tr>
+                        <tr>
+                            <td class="text-turquoise-300 font-semibold">Prometheus</td>
+                            <td><span class="category-badge badge-monitor">Monitor</span></td>
+                            <td class="text-silver-300">Metrics collection</td>
+                            <td class="text-red-400">High</td>
+                            <td class="text-silver-400">Time-series data, scale</td>
+                            <td class="text-silver-500">Grafana, Alertmanager</td>
+                        </tr>
+                        <tr>
+                            <td class="text-turquoise-200 font-semibold">Batfish</td>
+                            <td><span class="category-badge badge-test">Test</span></td>
+                            <td class="text-silver-300">Config validation</td>
+                            <td class="text-yellow-400">Medium</td>
+                            <td class="text-silver-400">Pre-change verification</td>
+                            <td class="text-silver-500">Ansible, Python</td>
+                        </tr>
+                        <tr>
+                            <td class="text-turquoise-400 font-semibold">pyATS</td>
+                            <td><span class="category-badge badge-test">Test</span></td>
+                            <td class="text-silver-300">Network testing</td>
+                            <td class="text-red-400">High</td>
+                            <td class="text-silver-400">Cisco environments</td>
+                            <td class="text-silver-500">Cisco NSO, Jenkins</td>
+                        </tr>
+                        <tr>
+                            <td class="text-turquoise-500 font-semibold">StackStorm</td>
+                            <td><span class="category-badge badge-orchestrate">Orchestrate</span></td>
+                            <td class="text-silver-300">Event-driven automation</td>
+                            <td class="text-red-400">High</td>
+                            <td class="text-silver-400">Closed-loop remediation</td>
+                            <td class="text-silver-500">All of the above</td>
+                        </tr>
+                        <tr>
+                            <td class="text-silver-300 font-semibold">Zabbix</td>
+                            <td><span class="category-badge badge-monitor">Monitor</span></td>
+                            <td class="text-silver-300">Legacy monitoring</td>
+                            <td class="text-yellow-400">Medium</td>
+                            <td class="text-silver-400">SNMP-heavy environments</td>
+                            <td class="text-silver-500">Grafana, custom</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-6 flex gap-4 text-xs text-silver-500">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-green-400/50"></span> Low barrier</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-yellow-400/50"></span> Moderate effort</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-400/50"></span> Significant investment</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 7: Architecture Blueprint -->
+    <div class="slide" data-slide="6">
+        <div class="max-w-6xl w-full">
+            <h2 class="text-4xl font-bold text-turquoise-300 mb-2">Integrated Architecture</h2>
+            <p class="text-silver-400 mb-12">How these tools work together in a modern network ops pipeline</p>
+            
+            <div class="relative">
+                <!-- Architecture Diagram -->
+                <div class="grid grid-cols-4 gap-4 mb-8">
+                    <div class="arch-node">
+                        <div class="text-2xl mb-2">📋</div>
+                        <h4 class="text-turquoise-300 font-semibold text-sm">Git Repository</h4>
+                        <p class="text-xs text-silver-500 mt-1">Source of truth for configs</p>
+                    </div>
+                    <div class="arch-node">
+                        <div class="text-2xl mb-2">🧪</div>
+                        <h4 class="text-turquoise-300 font-semibold text-sm">Batfish Validation</h4>
+                        <p class="text-xs text-silver-500 mt-1">Pre-deployment testing</p>
+                    </div>
+                    <div class="arch-node">
+                        <div class="text-2xl mb-2">⚙️</div>
+                        <h4 class="text-turquoise-300 font-semibold text-sm">Ansible Deploy</h4>
+                        <p class="text-xs text-silver-500 mt-1">Push to production</p>
+                    </div>
+                    <div class="arch-node">
+                        <div class="text-2xl mb-2">📊</div>
+                        <h4 class="text-turquoise-300 font-semibold text-sm">Grafana Monitor</h4>
+                        <p class="text-xs text-silver-500 mt-1">Validate & observe</p>
+                    </div>
+                </div>
+                
+                <!-- Arrows -->
+                <div class="flex justify-center gap-2 mb-8">
+                    <div class="flex items-center gap-2 text-turquoise-500">
+                        <span class="text-xs">CI Trigger</span>
+                        <span class="text-2xl">→</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-turquoise-500">
+                        <span class="text-xs">Pass/Fail</span>
+                        <span class="text-2xl">→</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-turquoise-500">
+                        <span class="text-xs">Metrics</span>
+                        <span class="text-2xl">→</span>
+                    </div>
+                </div>
+                
+                <!-- Feedback loop -->
+                <div class="bg-silver-900/30 rounded-xl p-6 border border-silver-700/30">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-full bg-turquoise-500/20 flex items-center justify-center text-2xl border-2 border-turquoise-500/50">
+                                🎛️
+                            </div>
+                            <div>
+                                <h4 class="text-turquoise-300 font-semibold">StackStorm / AWX</h4>
+                                <p class="text-sm text-silver-400">Orchestration layer tying it all together</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-silver-500 mb-1">Closed-Loop Automation</div>
+                            <div class="flex gap-2">
+                                <span class="px-2 py-1 bg-turquoise-500/20 rounded text-xs text-turquoise-300">Auto-remediate</span>
+                                <span class="px-2 py-1 bg-silver-700/30 rounded text-xs text-silver-300">Rollback</span>
+                                <span class="px-2 py-1 bg-turquoise-600/20 rounded text-xs text-turquoise-400">Alert</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom metrics sources -->
+                <div class="mt-8 grid grid-cols-3 gap-4">
+                    <div class="p-4 bg-turquoise-950/20 rounded-lg border border-turquoise-800/20 text-center">
+                        <span class="text-turquoise-400 font-mono text-sm">SNMP Exporters</span>
+                        <p class="text-xs text-silver-500 mt-1">Legacy device metrics</p>
+                    </div>
+                    <div class="p-4 bg-turquoise-950/20 rounded-lg border border-turquoise-800/20 text-center">
+                        <span class="text-turquoise-400 font-mono text-sm">Streaming Telemetry</span>
+                        <p class="text-xs text-silver-500 mt-1">Modern device metrics</p>
+                    </div>
+                    <div class="p-4 bg-turquoise-950/20 rounded-lg border border-turquoise-800/20 text-center">
+                        <span class="text-turquoise-400 font-mono text-sm">Syslog/Flows</span>
+                        <p class="text-xs text-silver-500 mt-1">Event correlation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 8: Decision Framework -->
+    <div class="slide" data-slide="7">
+        <div class="max-w-5xl w-full">
+            <h2 class="text-4xl font-bold text-turquoise-300 mb-8">Decision Framework</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div class="tool-card border-l-4 border-l-turquoise-500">
+                        <h4 class="text-turquoise-300 font-semibold mb-2">"I need to push configs to 1000 switches"</h4>
+                        <p class="text-sm text-silver-400 mb-3">Mass configuration deployment, standardized templates, compliance enforcement</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-silver-500">Choose:</span>
+                            <span class="px-3 py-1 bg-turquoise-500/20 rounded-full text-xs text-turquoise-300 font-semibold">Ansible + Jinja2</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-card border-l-4 border-l-silver-400">
+                        <h4 class="text-silver-300 font-semibold mb-2">"I need to see bandwidth utilization across all links"</h4>
+                        <p class="text-sm text-silver-400 mb-3">Historical trending, threshold alerting, capacity planning visuals</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-silver-500">Choose:</span>
+                            <span class="px-3 py-1 bg-silver-500/20 rounded-full text-xs text-silver-300 font-semibold">Grafana + Prometheus</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-card border-l-4 border-l-turquoise-400">
+                        <h4 class="text-turquoise-200 font-semibold mb-2">"Will this change break my BGP peering?"</h4>
+                        <p class="text-sm text-silver-400 mb-3">Pre-change validation, routing analysis, policy verification</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-silver-500">Choose:</span>
+                            <span class="px-3 py-1 bg-turquoise-400/20 rounded-full text-xs text-turquoise-200 font-semibold">Batfish</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="tool-card border-l-4 border-l-turquoise-600">
+                        <h4 class="text-turquoise-400 font-semibold mb-2">"I need to automate cloud network provisioning"</h4>
+                        <p class="text-sm text-silver-400 mb-3">AWS VPCs, Azure VNets, GCP networks, hybrid cloud</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-silver-500">Choose:</span>
+                            <span class="px-3 py-1 bg-turquoise-600/20 rounded-full text-xs text-turquoise-400 font-semibold">Terraform</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-card border-l-4 border-l-turquoise-300">
+                        <h4 class="text-turquoise-200 font-semibold mb-2">"I need to validate post-change state"</h4>
+                        <p class="text-sm text-silver-400 mb-3">Operational testing, regression detection, golden config comparison</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-silver-500">Choose:</span>
+                            <span class="px-3 py-1 bg-turquoise-300/20 rounded-full text-xs text-turquoise-200 font-semibold">pyATS / Netmiko</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-card border-l-4 border-l-silver-500">
+                        <h4 class="text-silver-300 font-semibold mb-2">"I need to auto-remediate when links flap"</h4>
+                        <p class="text-sm text-silver-400 mb-3">Event-driven automation, closed-loop remediation, runbook execution</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-silver-500">Choose:</span>
+                            <span class="px-3 py-1 bg-silver-500/20 rounded-full text-xs text-silver-300 font-semibold">StackStorm</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 p-6 bg-gradient-to-r from-turquoise-900/20 to-silver-900/20 rounded-xl border border-turquoise-700/20">
+                <h4 class="text-turquoise-300 font-semibold mb-2">🎯 The Golden Rule</h4>
+                <p class="text-silver-300 text-sm">Start with <span class="text-turquoise-400 font-semibold">Ansible</span> for quick wins, add <span class="text-silver-300 font-semibold">Grafana</span> for visibility, introduce <span class="text-turquoise-300 font-semibold">Batfish</span> for safety, and scale with <span class="text-turquoise-500 font-semibold">Terraform</span> for cloud. Orchestrate with <span class="text-silver-400 font-semibold">StackStorm</span> or <span class="text-silver-400 font-semibold">AWX</span> when you need the full pipeline.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 9: Summary -->
+    <div class="slide" data-slide="8">
+        <div class="text-center max-w-4xl">
+            <h2 class="text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-turquoise-300 to-silver-300">
+                Key Takeaways
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="p-6 bg-turquoise-900/20 rounded-2xl border border-turquoise-700/30">
+                    <div class="text-4xl mb-4">🎯</div>
+                    <h3 class="text-turquoise-300 font-semibold mb-2">Right Tool, Right Job</h3>
+                    <p class="text-sm text-silver-400">Ansible configures, Grafana observes, Batfish validates. Don't force a square peg into a round hole.</p>
+                </div>
+                
+                <div class="p-6 bg-silver-900/20 rounded-2xl border border-silver-700/30">
+                    <div class="text-4xl mb-4">🔗</div>
+                    <h3 class="text-silver-300 font-semibold mb-2">Integration > Isolation</h3>
+                    <p class="text-sm text-silver-400">The real power emerges when these tools form a pipeline: Git → Test → Deploy → Monitor.</p>
+                </div>
+                
+                <div class="p-6 bg-turquoise-900/20 rounded-2xl border border-turquoise-700/30">
+                    <div class="text-4xl mb-4">🚀</div>
+                    <h3 class="text-turquoise-300 font-semibold mb-2">Start Small, Scale Fast</h3>
+                    <p class="text-sm text-silver-400">Begin with Ansible playbooks. Add monitoring. Introduce testing. Build your automation muscle.</p>
+                </div>
+            </div>
+            
+            <div class="text-silver-500 text-sm">
+                <p>Network Automation Presentation | Turquoise & Silver Theme</p>
+                <p class="mt-2 text-turquoise-600">Press <span class="key">ESC</span> for overview • <span class="key">→</span> to navigate</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Slide management
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        // Create nav dots
+        const navDotsContainer = document.getElementById('navDots');
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            dot.onclick = () => goToSlide(i);
+            navDotsContainer.appendChild(dot);
+        }
+        
+        // Create particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+        
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else if (index < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+            
+            // Update nav dots
+            document.querySelectorAll('.nav-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+            
+            // Update progress bar
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+        
+        function goToSlide(index) {
+            if (index >= 0 && index < totalSlides) {
+                currentSlide = index;
+                updateSlides();
+            }
+        }
+        
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateSlides();
+            }
+        }
+        
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlides();
+            }
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Escape') {
+                // Show overview (could expand to grid view)
+                currentSlide = 0;
+                updateSlides();
+            }
+        });
+        
+        // Touch/swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        }
+        
+        // Initialize
+        updateSlides();
+    </script>
+</body>
+</html>'''
+
+# Save to file
+with open('/mnt/kimi/output/network_automation_tools_presentation.html', 'w') as f:
+    f.write(html_content)
+
+print("✅ Presentation created successfully!")
+print("\n📊 Slide Overview:")
+slides = [
+    "1. Title - Network Automation Toolbox",
+    "2. The Automation Spectrum (4 Categories)",
+    "3. Ansible Deep Dive (Configuration)",
+    "4. Grafana Deep Dive (Monitoring)",
+    "5. Testing Tools (Batfish, pyATS, Netmiko)",
+    "6. Comparison Matrix (8 Tools)",
+    "7. Integrated Architecture Blueprint",
+    "8. Decision Framework (Use Cases)",
+    "9. Summary & Key Takeaways"
+]
+for slide in slides:
+    print(f"   {slide}")
+
+print("\n🎨 Theme: Turquoise & Silver (avoiding overused purple gradients)")
+print("\n⌨️  Navigation:")
+print("   • Arrow keys or swipe to navigate")
+print("   • ESC to return to start")
+print("   • Click dots on right to jump")
